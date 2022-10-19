@@ -29,6 +29,7 @@ import AuctionKickSim from "../../pages/auctionKickSim/AuctionKickSim.js";
 import AuctionsThroughput from "../../pages/auctionThroughputs/AuctionsThroughput.js";
 import AuctionThroughput from "../../pages/auctionThroughputs/AuctionThroughput.js";
 import AaveD3M from "../../pages/d3m/AaveD3M.js";
+import Changelog from "../../pages/changelog/Changelog.js";
 import D3M from "../../pages/d3m/D3M.js";
 import RevenueD3M from "../../pages/d3m/RevenueD3M.js";
 import DaiGrowth from "../../pages/daiGrowth/DaiGrowth.js";
@@ -61,7 +62,7 @@ import Vaults from "../../pages/vaults/Vaults.js";
 import VaultsAtRisk from "../../pages/vaultsAtRisk/VaultsAtRisk.js";
 import VaultsAtRiskMarket from "../../pages/vaultsAtRisk/VaultsAtRiskMarket.js";
 import VaultsAtRiskSimulation from "../../pages/vaultsAtRisk/VaultsAtRiskSimulation.js";
-import Whale from "../../pages/whales/Whale.js";
+import Wallet from "../../pages/wallets/Wallet.js";
 import Whales from "../../pages/whales/Whales.js";
 import BreadcrumbHistory from "../BreadcrumbHistory/BreadcrumbHistory.js";
 import styles from "./Layout.module.scss";
@@ -192,6 +193,11 @@ function Layout(props) {
                         FAQ
                       </NavLink>
                     </DropdownItem>
+                    <DropdownItem>
+                      <NavLink tag={Link} to="changelog/">
+                        Changelog
+                      </NavLink>
+                    </DropdownItem>
                   </DropdownMenu>
                 </UncontrolledDropdown>
               </Nav>
@@ -254,13 +260,14 @@ function Layout(props) {
             <Route path="/dai/growth/" element={<DaiGrowth />} />
             <Route path="/dai/trades/" element={<DaiTrades />} />
             <Route path="/whales/" element={<Whales />} />
-            <Route path="/whales/:slug/" element={<Whale />} />
+            <Route path="/wallets/:address/" element={<Wallet />} />
             <Route path="/forum-archive/" element={<ForumArchive />} />
             <Route path="/psms/:ilk/" element={<PSM />} />
             <Route path="/psms/" element={<PSMs />} />
             <Route path="/vaults/all/" element={<AllVaults />} />
             <Route path="/defi/" element={<Defi />} />
             <Route path="/faq/" element={<FAQ />} />
+            <Route path="/changelog/" element={<Changelog />} />
 
             {/* Redirects from old maker dashboard */}
             <Route path="/vaults/" element={<Navigate replace to="/vault-types/" />} />
