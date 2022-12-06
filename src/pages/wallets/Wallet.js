@@ -29,18 +29,14 @@ import styles from "./Wallet.module.scss";
 function Wallet(props) {
   const { address } = useParams();
   let navigate = useNavigate();
+
+  const [timePeriod, setTimePeriod] = useState(7);
   const [showAllVaults, setShowAllVaults] = useState(null);
-  const [timePeriod, setTimePeriod] = useState(1);
+  const [isTokenCurrency, setIsTokenCurrency] = useState(false);
   const { data, isLoading, isError, ErrorFallbackComponent } = useFetch(
     `/wallets/${address}/`,
     { all_vaults: showAllVaults }
   );
-
-  const timeSwitchOptions = [
-    { key: 1, value: "1 day" },
-    { key: 7, value: "7 days" },
-    { key: 30, value: "30 days" },
-  ];
 
   if (isLoading) {
     return <Loader />;
@@ -65,6 +61,12 @@ function Wallet(props) {
   const { vaults, name, ens, address: walletAddress, slug } = data;
 
   const addressParam = slug || walletAddress;
+
+  const timePeriodOptions = [
+    { key: 1, value: "1 day" },
+    { key: 7, value: "7 days" },
+    { key: 30, value: "30 days" },
+  ];
 
   const vaultOptions = [
     { key: null, value: "Active" },
@@ -119,20 +121,38 @@ function Wallet(props) {
       dataField: "collateral",
       text: "collateral",
       sort: true,
-      formatExtraData: { timePeriod },
+      formatExtraData: { timePeriod, isTokenCurrency },
       formatter: (cell, row) => (
-        <div className="text-nowrap">
-          <Value value={cell} decimals={2} compact />
-          <br />
-          <ValueChange
-            className="pl-2"
-            value={row[`collateral_change_${timePeriod}d`]}
-            decimals={2}
-            hideIfZero
-            compact
-            icon
-          />
-        </div>
+        <>
+          {isTokenCurrency ? (
+            <>
+              <Value value={cell} decimals={2} compact />
+              <br />
+              <ValueChange
+                className="pl-2"
+                value={row[`collateral_change_${timePeriod}d`]}
+                decimals={2}
+                hideIfZero
+                compact
+                icon
+              />
+            </>
+          ) : (
+            <>
+              <Value value={cell * row.osm_price} decimals={2} prefix="$" compact />
+              <br />
+              <ValueChange
+                className="pl-2"
+                value={row[`collateral_change_${timePeriod}d`] * row.osm_price}
+                decimals={2}
+                prefix="$"
+                hideIfZero
+                compact
+                icon
+              />
+            </>
+          )}
+        </>
       ),
       headerAlign: "right",
       align: "right",
@@ -290,48 +310,69 @@ function Wallet(props) {
 
   return (
     <>
-      <div className="d-flex mb-4 align-items-center">
-        <div className="d-flex align-items-center flex-grow-1">
-          {blockie ? (
-            <img
-              className={classnames("me-3", styles.roundedCircle, styles.walletLogo)}
-              src={blockie}
-              alt={walletAddress}
-            />
+      <div className="d-flex align-items-center flex-grow-1 mb-4">
+        {blockie ? (
+          <img
+            className={classnames("me-3", styles.roundedCircle, styles.walletLogo)}
+            src={blockie}
+            alt={walletAddress}
+          />
+        ) : null}
+        <div>
+          <h1 className="h3 m-0">
+            {name || (ens && ens.length < 25 ? ens : null) || walletAddress}
+          </h1>
+          {walletAddress ? (
+            <div>
+              <EtherscanWallet className="me-2" address={walletAddress} />
+              <DebankWallet className="me-2" address={walletAddress} />
+              <ZapperWallet address={walletAddress} />
+            </div>
           ) : null}
-          <div>
-            <h1 className="h3 m-0">
-              {name || (ens && ens.length < 25 ? ens : null) || walletAddress}
-            </h1>
-            {walletAddress ? (
-              <div>
-                <EtherscanWallet className="me-2" address={walletAddress} />
-                <DebankWallet className="me-2" address={walletAddress} />
-                <ZapperWallet address={walletAddress} />
-              </div>
-            ) : null}
+        </div>
+      </div>
+
+      <div className="d-flex flex-direction-row justify-content-between mb-2">
+        <div className="d-flexalign-items-center">
+          <div className={styles.currencySelector}>
+            <label className="gray">Show amounts in: </label>
+            <ul>
+              <li
+                className={classnames({
+                  [styles.currencySelectorActive]: !isTokenCurrency,
+                })}
+                onClick={() => setIsTokenCurrency(false)}
+              >
+                $
+              </li>
+              <li
+                className={classnames({
+                  [styles.currencySelectorActive]: isTokenCurrency,
+                })}
+                onClick={() => setIsTokenCurrency(true)}
+              >
+                Token
+              </li>
+            </ul>
           </div>
         </div>
-        <div className="d-flex align-items-center">
-          Show vaults:{" "}
+        <div className="d-flex align-items-center justify-content-end">
+          <span className="gray">Show vaults:</span>{" "}
           <TimeSwitch
             activeOption={showAllVaults}
             onChange={setShowAllVaults}
             options={vaultOptions}
           />
         </div>
+        <div className="d-flex align-items-center justify-content-end">
+          <span className="gray">Period:</span>{" "}
+          <TimeSwitch
+            activeOption={timePeriod}
+            onChange={setTimePeriod}
+            options={timePeriodOptions}
+          />
+        </div>
       </div>
-      <div className="text-end mb-4">
-        Period:{" "}
-        <TimeSwitch
-          activeOption={timeSwitchOptions}
-          onChange={setTimePeriod}
-          options={timeSwitchOptions}
-        />
-      </div>
-
-      <div className="d-flex align-items-center justify-content-end"></div>
-
       <StatsBar className="mb-4" stats={stats} />
       <LinkTable
         keyField="uid"
@@ -345,8 +386,9 @@ function Wallet(props) {
         ]}
         columns={columns}
       />
-      <h3 className="my-4">debt history</h3>
+
       <DebtChart address={addressParam} showAllVaults={showAllVaults} />
+
       <h3 className="my-4">events</h3>
       <EventsTable address={addressParam} showAllVaults={showAllVaults} />
     </>
