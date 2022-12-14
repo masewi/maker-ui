@@ -131,6 +131,8 @@ function CryptoIcon(props) {
     "yearn-strategies": yfiIcon,
     "mana-treasury": manaIcon,
     "matic-treasury": maticIcon,
+    GNO: gnoIcon,
+    RETH: ethIcon,
   };
   const Icon = mapping[name];
   if (!Icon) {
